@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 import httpx
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response, Depends, Form, Cookie
+from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -46,8 +47,7 @@ sessions: dict[str, dict] = {}
 pool_workers: dict[str, dict] = {}
 pool_pending: set[str] = set()
 _pool_create_lock = asyncio.Lock()
-_pool_creating_count = 0
-POOL_MAX_CREATING = 4
+POOL_MAX_PENDING = 8
 POOL_NP = 1
 POOL_IDLE_TIMEOUT = 600
 POOL_RENEW_LEAD = 300
@@ -822,39 +822,34 @@ async def _pool_get_worker() -> dict | None:
 
 
 async def _pool_create_worker() -> None:
-    global _pool_creating_count
-    if _pool_creating_count >= POOL_MAX_CREATING:
+    if len(pool_pending) >= POOL_MAX_PENDING:
         return None
-    _pool_creating_count += 1
-    try:
-        session_id = str(uuid.uuid4())
-        session = {
-            "id": session_id, "status": "pending",
-            "model": "Qwen3.6-27B-MTP",
-            "slurm_job_id": None, "worker_url": None,
-            "created_at": time.time(), "last_active": time.time(),
-            "gpu_type": DEFAULT_GPU, "walltime": DEFAULT_TIME,
-            "memory": DEFAULT_MEM, "mode": "gpu", "restart_count": 0,
-            "auto": True, "pool": True,
-        }
-        sessions[session_id] = session
-        pool_pending.add(session_id)
-        job_id = await _submit_job(session)
-        if job_id:
-            session["slurm_job_id"] = job_id
-            logger.info(f"Pool created session {session_id[:8]} -> Slurm job {job_id}")
-            _log_stats_event({
-                "event": "worker_created", "ts": time.time(),
-                "worker_session": session_id, "slurm_job_id": job_id,
-                "source": "pool", "model": "Qwen3.6-27B-MTP",
-            })
-        else:
-            session["status"] = "failed"
-            pool_pending.discard(session_id)
-            logger.error(f"Pool sbatch failed for {session_id[:8]}")
-        return None
-    finally:
-        _pool_creating_count -= 1
+    session_id = str(uuid.uuid4())
+    session = {
+        "id": session_id, "status": "pending",
+        "model": "Qwen3.6-27B-MTP",
+        "slurm_job_id": None, "worker_url": None,
+        "created_at": time.time(), "last_active": time.time(),
+        "gpu_type": DEFAULT_GPU, "walltime": DEFAULT_TIME,
+        "memory": DEFAULT_MEM, "mode": "gpu", "restart_count": 0,
+        "auto": True, "pool": True,
+    }
+    sessions[session_id] = session
+    pool_pending.add(session_id)
+    job_id = await _submit_job(session)
+    if job_id:
+        session["slurm_job_id"] = job_id
+        logger.info(f"Pool created session {session_id[:8]} -> Slurm job {job_id}")
+        _log_stats_event({
+            "event": "worker_created", "ts": time.time(),
+            "worker_session": session_id, "slurm_job_id": job_id,
+            "source": "pool", "model": "Qwen3.6-27B-MTP",
+        })
+    else:
+        session["status"] = "failed"
+        pool_pending.discard(session_id)
+        logger.error(f"Pool sbatch failed for {session_id[:8]}")
+    return None
 
 
 def _pool_add(session_id: str):
@@ -1015,16 +1010,16 @@ async def _pool_maintenance():
                 "pool_load": total_active,
             })
             # Scale up on load threshold
-            if pool_workers and total_active >= total_cap * POOL_SCALE_UP and _pool_creating_count < POOL_MAX_CREATING:
+            if pool_workers and total_active >= total_cap * POOL_SCALE_UP and len(pool_pending) < POOL_MAX_PENDING:
                 logger.info(f"Pool at {total_active}/{total_cap} ({total_active/total_cap:.0%}), spawning worker")
                 asyncio.create_task(_pool_create_worker())
             # Recovery: pool empty but there's demand (pinned or pending)
-            if not pool_workers and (pinned_count > 0 or pool_pending) and _pool_creating_count < POOL_MAX_CREATING:
+            if not pool_workers and (pinned_count > 0 or pool_pending) and len(pool_pending) < POOL_MAX_PENDING:
                 logger.info(f"Pool empty with {pinned_count} pinned + {len(pool_pending)} pending, spawning recovery worker")
                 asyncio.create_task(_pool_create_worker())
             # Demand-based pre-scaling: spawn spare if recent activity warrants it
             recent = sum(1 for t in REQUEST_HISTORY if now - t < POOL_SPARE_WINDOW)
-            if pool_workers and recent >= POOL_SPARE_THRESHOLD and _pool_creating_count < POOL_MAX_CREATING:
+            if pool_workers and recent >= POOL_SPARE_THRESHOLD and len(pool_pending) < POOL_MAX_PENDING:
                 idle_count = sum(1 for pw2 in pool_workers.values() if pw2["active_requests"] == 0)
                 if idle_count < POOL_MIN_SPARE:
                     logger.info(f"Recent activity ({recent} reqs), spawning spare worker")
@@ -1387,26 +1382,26 @@ async def _proxy(request: Request, path: str):
         if not session_id:
             s = await _pool_get_worker()
             if not s:
-                raise HTTPException(status_code=503, detail="Allocating GPU resources. Try again in 30 seconds.")
+                return JSONResponse(status_code=503, content={"error": {"message": "Allocating GPU resources. Try again in 30 seconds.", "type": "server_error", "code": 503}})
             session_id = s["id"]
             session_routes[opencode_session] = session_id
             s["pinned_for_session"] = opencode_session
         else:
             s = sessions.get(session_id)
             if not s or s["status"] != "ready":
-                raise HTTPException(status_code=503, detail=f"Session status: {s.get('status', 'not found')}")
+                return JSONResponse(status_code=503, content={"error": {"message": f"Session status: {s.get('status', 'not found')}", "type": "server_error", "code": 503}})
 
     elif session_id:
         s = sessions.get(session_id)
         if not s:
-            raise HTTPException(status_code=404, detail="Session not found")
+            return JSONResponse(status_code=404, content={"error": {"message": "Session not found", "type": "not_found", "code": 404}})
         if s["status"] != "ready":
-            raise HTTPException(status_code=503, detail=f"Session status: {s['status']}")
+            return JSONResponse(status_code=503, content={"error": {"message": f"Session status: {s['status']}", "type": "server_error", "code": 503}})
 
     else:
         s = await _pool_get_worker()
         if not s:
-            raise HTTPException(status_code=503, detail="Allocating GPU resources. Try again in 30 seconds.")
+            return JSONResponse(status_code=503, content={"error": {"message": "Allocating GPU resources. Try again in 30 seconds.", "type": "server_error", "code": 503}})
         session_id = s["id"]
         from_pool = True
 
@@ -1446,7 +1441,7 @@ async def _proxy(request: Request, path: str):
             "opencode_session": opencode_session, "worker_session": session_id,
             "path": path, "worker_idle_before": worker_idle_before, "error": str(e),
         })
-        raise HTTPException(status_code=502, detail=str(e))
+        return JSONResponse(status_code=502, content={"error": {"message": str(e), "type": "proxy_error", "code": 502}})
     finally:
         if from_pool:
             await _pool_release(session_id)

@@ -9,3 +9,10 @@
 
 # database
 llm_proxy.db
+
+# python cache
+__pycache__/
+*.pyc
+
+# stats
+llm_proxy_stats.jsonl
