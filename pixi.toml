@@ -1,0 +1,14 @@
+[workspace]
+authors = ["Silas Kieser <Silas.kieser@gmail.ch>"]
+channels = ["conda-forge"]
+name = "Server"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+fastapi = ">=0.136.1,<0.137"
+uvicorn = ">=0.47.0,<0.48"
+httpx = ">=0.28.1,<0.29"
+pydantic = ">=2.13.4,<3"

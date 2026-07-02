@@ -1,0 +1,11 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# log files
+*.log
+*.out
+*.err
+
+# database
+llm_proxy.db
