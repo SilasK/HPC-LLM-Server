@@ -503,7 +503,9 @@ def _dashboard_html(email: str, role: str) -> str:
 <div class="stat-card"><div class="label">API Requests</div><div class="value purple" id="stat-requests">-</div></div>
 </div>
 <div class="section">
-<h3>&#x1f4cb; Running Jobs</h3>
+<h3>&#x1f4cb; Running Jobs
+<button onclick="cancelAllPending()" style="float:right;padding:0.25rem 0.75rem;background:#7f1d1d;border:1px solid #f87171;border-radius:6px;color:#f87171;font-size:0.75rem;font-weight:600;cursor:pointer;">Cancel All Pending</button>
+</h3>
 <div id="sessions-table"><div class="empty-state">Loading...</div></div>
 </div>
 <div class="section">
@@ -575,6 +577,15 @@ const fmt = (n) => n.toLocaleString();
 const age = (ts) => {{ const s = Math.floor((Date.now()/1000 - ts)); if (s < 60) return s + 's ago'; if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; return Math.floor(s/86400) + 'd ago'; }};
 const fmtDuration = (secs) => {{ if (secs < 60) return Math.floor(secs) + 's'; if (secs < 3600) return Math.floor(secs/60) + 'm ' + Math.floor(secs%60) + 's'; return Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm'; }};
 const badge = (st) => `<span class="badge badge-${{st}}">${{st}}</span>`;
+async function cancelAllPending() {{
+  if (!confirm('Cancel all pending SLURM jobs?')) return;
+  try {{
+    const r = await fetch('/admin/cancel-pending', {{method: 'POST'}});
+    const data = await r.json();
+    alert('Cancelled ' + data.cancelled + ' pending jobs.');
+    load();
+  }} catch(e) {{ alert('Error: ' + e); }}
+}}
 async function load() {{
 try {{
 const [sessions, usage, liveStats] = await Promise.all([
@@ -786,7 +797,7 @@ async def _submit_job(session: dict) -> str | None:
         return None
 
 
-async def _pool_get_worker() -> dict | None:
+async def _pool_get_worker() -> dict | str | None:
     async with _pool_create_lock:
         for sid, s in list(sessions.items()):
             if s["status"] == "ready" and s.get("worker_url") and sid not in pool_workers and sid not in pool_pending:
@@ -821,7 +832,7 @@ async def _pool_get_worker() -> dict | None:
         return await _pool_create_worker()
 
 
-async def _pool_create_worker() -> None:
+async def _pool_create_worker() -> str | None:
     if len(pool_pending) >= POOL_MAX_PENDING:
         return None
     session_id = str(uuid.uuid4())
@@ -845,11 +856,12 @@ async def _pool_create_worker() -> None:
             "worker_session": session_id, "slurm_job_id": job_id,
             "source": "pool", "model": "Qwen3.6-27B-MTP",
         })
+        return session_id
     else:
         session["status"] = "failed"
         pool_pending.discard(session_id)
         logger.error(f"Pool sbatch failed for {session_id[:8]}")
-    return None
+        return None
 
 
 def _pool_add(session_id: str):
@@ -1264,6 +1276,25 @@ async def admin_users_page(sess=Depends(_require_dashboard_session)):
     return _admin_users_html(sess["email"], sess["role"], [dict(u) for u in users])
 
 
+@app.post("/admin/cancel-pending")
+async def cancel_pending(sess=Depends(_require_dashboard_session)):
+    cancelled = 0
+    for sid, s in list(sessions.items()):
+        if s["status"] == "pending" and s.get("slurm_job_id"):
+            subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
+            s["status"] = "cancelled"
+            pool_pending.discard(sid)
+            for oc_sid, w_sid in list(session_routes.items()):
+                if w_sid == sid:
+                    del session_routes[oc_sid]
+            _log_stats_event({
+                "event": "worker_removed", "ts": time.time(),
+                "worker_session": sid, "reason": "user_cancelled",
+            })
+            cancelled += 1
+    return {"cancelled": cancelled}
+
+
 @app.get("/sessions")
 async def list_sessions(_=Depends(require_auth)):
     return [{"session_id": s["id"], "status": s["status"], "mode": s.get("mode", "gpu"), "model": s["model"], "slurm_job_id": s.get("slurm_job_id"), "auto": s.get("auto", False)} for s in sessions.values()]
@@ -1375,14 +1406,20 @@ async def _proxy(request: Request, path: str):
             if s and s["status"] == "ready" and s.get("pinned_for_session") == opencode_session:
                 session_id = worker_id
                 cache_hit = True
+            elif s and s["status"] == "pending":
+                return JSONResponse(status_code=503, content={"error": {"message": "GPU worker still starting. Retry in ~30s.", "type": "server_error", "code": 503}})
             else:
                 session_routes.pop(opencode_session, None)
                 worker_id = None
 
         if not session_id:
-            s = await _pool_get_worker()
-            if not s:
-                return JSONResponse(status_code=503, content={"error": {"message": "Allocating GPU resources. Try again in 30 seconds.", "type": "server_error", "code": 503}})
+            result = await _pool_get_worker()
+            if result is None:
+                return JSONResponse(status_code=503, content={"error": {"message": "Server at capacity, try again later.", "type": "server_error", "code": 503}})
+            if isinstance(result, str):
+                session_routes[opencode_session] = result
+                return JSONResponse(status_code=503, content={"error": {"message": "Allocating GPU resources. Retry in ~30s.", "type": "server_error", "code": 503}})
+            s = result
             session_id = s["id"]
             session_routes[opencode_session] = session_id
             s["pinned_for_session"] = opencode_session
@@ -1399,9 +1436,12 @@ async def _proxy(request: Request, path: str):
             return JSONResponse(status_code=503, content={"error": {"message": f"Session status: {s['status']}", "type": "server_error", "code": 503}})
 
     else:
-        s = await _pool_get_worker()
-        if not s:
-            return JSONResponse(status_code=503, content={"error": {"message": "Allocating GPU resources. Try again in 30 seconds.", "type": "server_error", "code": 503}})
+        result = await _pool_get_worker()
+        if result is None:
+            return JSONResponse(status_code=503, content={"error": {"message": "Server at capacity, try again later.", "type": "server_error", "code": 503}})
+        if isinstance(result, str):
+            return JSONResponse(status_code=503, content={"error": {"message": "Allocating GPU resources. Retry in ~30s.", "type": "server_error", "code": 503}})
+        s = result
         session_id = s["id"]
         from_pool = True
 

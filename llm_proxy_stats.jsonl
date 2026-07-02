@@ -1421,3 +1421,61 @@
 {"event": "request", "ts": 1783017065.9706848, "opencode_session": "ses_0de51d61affepvkSxild6XbpdV", "worker_session": "9c96dc7f-cd31-4bb9-8fcf-d9426d82cba8", "cache_hit": true, "path": "v1/chat/completions", "status": 200, "worker_idle_before": 77.43797159194946, "prompt_tokens": null, "completion_tokens": null}
 {"event": "request", "ts": 1783017068.960827, "opencode_session": "ses_0de51d61affepvkSxild6XbpdV", "worker_session": "9c96dc7f-cd31-4bb9-8fcf-d9426d82cba8", "cache_hit": true, "path": "v1/chat/completions", "status": 400, "worker_idle_before": 13.171036005020142, "prompt_tokens": null, "completion_tokens": null}
 {"event": "pool_status", "ts": 1783017079.3482864, "active_workers": 4, "pinned_workers": 3, "pending": 42, "total_sessions": 46, "pool_capacity": 4, "pool_load": 0}
+{"event": "worker_created", "ts": 1783017103.9697244, "worker_session": "ce0ce2e9-39f8-4b65-a2a8-3cb7e0447acf", "slurm_job_id": "7867886", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783017109.7439864, "worker_session": "1fe3f6b8-a356-40bb-9686-17f89be52686", "slurm_job_id": "7867887", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783017120.0412517, "worker_session": "a588e94c-b8f8-4fb4-90f0-544491647d4b", "slurm_job_id": "7867894", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1783017129.8896503, "active_workers": 0, "pinned_workers": 0, "pending": 3, "total_sessions": 3, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1783017129.9479759, "worker_session": "7e39bb0d-0cab-4cff-bb05-1d8810bf4f2c", "slurm_job_id": "7867897", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783017139.6459236, "worker_session": "58ad9d4c-9217-4e83-a0cb-81f38226af09", "slurm_job_id": "7867899", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783017158.0956535, "worker_session": "55409702-e3a6-4456-8f2e-492d34051773", "slurm_job_id": "7867905", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783017158.9450686, "worker_session": "b894b37b-b826-4910-bd6b-14e5ec4b7f15", "slurm_job_id": "7867906", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1783017159.924358, "active_workers": 0, "pinned_workers": 0, "pending": 7, "total_sessions": 7, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1783017161.273385, "worker_session": "c16c1b6c-1f49-4e15-888b-b122431bb287", "slurm_job_id": "7867907", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1783017191.2562516, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017221.3452315, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017251.4276497, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017281.5133455, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017311.6026337, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017341.6990666, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017371.7898128, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017401.8774738, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017431.9659655, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017462.0546312, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017492.1455383, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017522.2340577, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017552.3205762, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017582.618743, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017612.7102594, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017642.795135, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017672.8799388, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017702.9693794, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017733.0555232, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017764.1933844, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017794.2807262, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017824.3681357, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017854.45822, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017884.5453296, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017914.6330752, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017944.7207143, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783017974.8149667, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018004.901532, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018034.9914432, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018065.0862386, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018095.1712246, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018125.2571082, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018155.3406954, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018185.4284368, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018215.5215793, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018245.6094115, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018275.6960952, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018305.7824817, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018335.867635, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018365.9587712, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018396.0504248, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018426.347105, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018456.430977, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018486.518013, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018516.6058629, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018546.7035205, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018576.7915454, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1783018607.9228222, "active_workers": 0, "pinned_workers": 0, "pending": 8, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
