@@ -47,7 +47,7 @@ sessions: dict[str, dict] = {}
 pool_workers: dict[str, dict] = {}
 pool_pending: set[str] = set()
 _pool_create_lock = asyncio.Lock()
-POOL_MAX_PENDING = 8
+POOL_MAX_PENDING = 4
 POOL_NP = 1
 POOL_IDLE_TIMEOUT = 600
 POOL_RENEW_LEAD = 300
@@ -294,6 +294,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.6875rem; font-weight: 600; }
 .badge-ready { background: #14532d; color: #4ade80; }
 .badge-pending { background: #451a03; color: #fb923c; }
+.badge-queued { background: #1e3a5f; color: #60a5fa; }
+.badge-starting { background: #5b21b6; color: #c4b5fd; }
 .badge-completed { background: #1e3a5f; color: #60a5fa; }
 .badge-cancelled { background: #450a0a; color: #f87171; }
 .badge-failed { background: #450a0a; color: #fca5a5; }
@@ -641,7 +643,8 @@ else {{
 shtml = '<table><thead><tr><th>Session ID</th><th>Status</th><th>Model</th><th>Slurm Job</th><th>Worker</th><th>Uptime</th><th>Created</th></tr></thead><tbody>';
 for (const s of sessions) {{
 const uptime = s.uptime ? fmtDuration(s.uptime) : (s.status === 'pending' ? 'queued' : '-');
-shtml += `<tr><td class="mono">${{s.session_id.slice(0,8)}}&hellip;</td><td>${{badge(s.status)}}</td><td>${{s.model}}</td><td class="mono">${{s.slurm_job_id || '-'}}</td><td class="mono">${{s.worker_url ? s.worker_url.split('//')[1] : '-'}}</td><td>${{uptime}}</td><td>${{age(s.created_at)}}</td></tr>`;
+                    const statusLabel = s.status === 'pending' && s.slurm_state === 'RUNNING' ? 'starting' : s.status === 'pending' && s.slurm_state === 'PENDING' ? 'queued' : s.status;
+                    shtml += `<tr><td class="mono">${{s.session_id.slice(0,8)}}&hellip;</td><td>${{badge(statusLabel)}}</td><td>${{s.model}}</td><td class="mono">${{s.slurm_job_id || '-'}}</td><td class="mono">${{s.worker_url ? s.worker_url.split('//')[1] : '-'}}</td><td>${{uptime}}</td><td>${{age(s.created_at)}}</td></tr>`;
 }}
 shtml += '</tbody></table>';
 }}
@@ -908,6 +911,7 @@ async def _pool_maintenance():
                 job_id = s.get("slurm_job_id")
                 if job_id:
                     state = _check_job_state(job_id)
+                    s["slurm_state"] = state
                     if state in ("FAILED", "TIMEOUT", "CANCELLED", "NODE_FAIL"):
                         logger.info(f"Pending pool worker {sid[:8]} job {job_id} {state}, removing")
                         _log_stats_event({
@@ -1317,7 +1321,7 @@ async def cancel_pending(sess=Depends(_require_dashboard_session)):
 
 @app.get("/sessions")
 async def list_sessions(_=Depends(require_auth)):
-    return [{"session_id": s["id"], "status": s["status"], "mode": s.get("mode", "gpu"), "model": s["model"], "slurm_job_id": s.get("slurm_job_id"), "auto": s.get("auto", False)} for s in sessions.values()]
+    return [{"session_id": s["id"], "status": s["status"], "mode": s.get("mode", "gpu"), "model": s["model"], "slurm_job_id": s.get("slurm_job_id"), "slurm_state": s.get("slurm_state"), "auto": s.get("auto", False)} for s in sessions.values()]
 
 
 @app.post("/sessions")
