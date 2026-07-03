@@ -4406,3 +4406,14 @@
 {"event": "pool_status", "ts": 1783079598.8166897, "active_workers": 4, "pinned_workers": 23, "pending": 5, "total_sessions": 118, "pool_capacity": 4, "pool_load": 2}
 {"event": "request", "ts": 1783079609.0114937, "opencode_session": "ses_0d82c9472ffeab5PXgE6xzQ0rJ", "worker_session": "30b67f83-b6ec-4d94-9eb6-935d6581a5fd", "cache_hit": false, "path": "v1/chat/completions", "status": 200, "worker_idle_before": 206.9013867378235, "prompt_tokens": null, "completion_tokens": null}
 {"event": "request", "ts": 1783079620.6058302, "opencode_session": "ses_0d82c9472ffeab5PXgE6xzQ0rJ", "worker_session": "30b67f83-b6ec-4d94-9eb6-935d6581a5fd", "cache_hit": true, "path": "v1/chat/completions", "status": 200, "worker_idle_before": 14.216977834701538, "prompt_tokens": null, "completion_tokens": null}
+{"event": "worker_created", "ts": 1783079690.7539604, "worker_session": "3acbce24-7295-4ce4-a2d8-658c4a3c9d60", "slurm_job_id": "7919111", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783079691.2700956, "worker_session": "567b5959-4c6a-4410-bd1e-99dde8c83312", "slurm_job_id": "7919112", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783079692.365858, "worker_session": "a6f8b469-7f9d-4598-874d-339b0ab00189", "slurm_job_id": "7919114", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783079693.100766, "worker_session": "d8b317ce-b5f5-4024-a88f-51b23654c6a7", "slurm_job_id": "7919116", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1783079711.6974702, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1783079711.9575706, "worker_session": "78441ac3-9689-48e5-96c4-ecaa327f60f2", "slurm_job_id": "7919145", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1783079727.4957905, "worker_session": "ea53fcae-2877-4294-ac4b-40e4971d0bd8", "slurm_job_id": "7919168", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1783079741.850847, "active_workers": 0, "pinned_workers": 0, "pending": 6, "total_sessions": 6, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1783079741.9408255, "worker_session": "76b80b3d-a0e2-4cc8-89cf-a34b4085a2d7", "slurm_job_id": "7919172", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1783079771.9184318, "active_workers": 0, "pinned_workers": 0, "pending": 7, "total_sessions": 7, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1783079772.192119, "worker_session": "40861c7b-eadb-4e43-b197-d8d1347eab0a", "slurm_job_id": "7919195", "source": "pool", "model": "Qwen3.6-27B-MTP"}

@@ -915,6 +915,7 @@ async def _pool_maintenance():
                             "worker_session": sid, "reason": f"slurm_{state.lower()}",
                         })
                         pool_pending.discard(sid)
+                        s.pop("pinned_for_session", None)
                         s["status"] = "completed"
 
             for sid, pw in list(pool_workers.items()):
@@ -950,6 +951,7 @@ async def _pool_maintenance():
                             if w_sid == sid:
                                 del session_routes[oc_sid]
                         pool_workers.pop(sid, None)
+                        s.pop("pinned_for_session", None)
                         s["status"] = "completed"
                         if s.get("slurm_job_id"):
                             subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
@@ -985,6 +987,7 @@ async def _pool_maintenance():
                             if w_sid == sid:
                                 del session_routes[oc_sid]
                         pool_workers.pop(sid, None)
+                        s.pop("pinned_for_session", None)
                         s["status"] = "completed"
                         if s.get("slurm_job_id"):
                             subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
@@ -1012,6 +1015,7 @@ async def _pool_maintenance():
                                     for oc_sid, w_sid in list(session_routes.items()):
                                         if w_sid == sid:
                                             del session_routes[oc_sid]
+                                    s.pop("pinned_for_session", None)
                                     s["status"] = "completed"
                                     pool_workers.pop(sid, None)
                                     asyncio.create_task(_pool_create_worker())
@@ -1027,7 +1031,7 @@ async def _pool_maintenance():
 
             total_active = sum(pw["active_requests"] for pw in pool_workers.values())
             total_cap = len(pool_workers) * POOL_NP
-            pinned_count = sum(1 for s in sessions.values() if s.get("pinned_for_session"))
+            pinned_count = sum(1 for sid, pw in pool_workers.items() if sessions.get(sid, {}).get("pinned_for_session"))
             _log_stats_event({
                 "event": "pool_status", "ts": now,
                 "active_workers": len(pool_workers),
