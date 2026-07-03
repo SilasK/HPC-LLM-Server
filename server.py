@@ -168,6 +168,22 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="LLM Slurm Proxy", lifespan=lifespan)
 
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": {"message": str(exc) or "Internal server error", "type": "server_error", "code": 500}},
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"message": exc.detail, "type": "server_error", "code": exc.status_code}},
+    )
+
+
 def _get_client() -> httpx.AsyncClient:
     return app.state.http_client
 
@@ -1403,9 +1419,10 @@ async def _proxy(request: Request, path: str):
         worker_id = session_routes.get(opencode_session)
         if worker_id:
             s = sessions.get(worker_id)
-            if s and s["status"] == "ready" and s.get("pinned_for_session") == opencode_session:
+            if s and s["status"] == "ready":
                 session_id = worker_id
                 cache_hit = True
+                s["pinned_for_session"] = opencode_session
             elif s and s["status"] == "pending":
                 return JSONResponse(status_code=503, content={"error": {"message": "GPU worker still starting. Retry in ~30s.", "type": "server_error", "code": 503}})
             else:
