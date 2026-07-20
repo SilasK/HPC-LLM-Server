@@ -24,6 +24,7 @@ ${LLAMA_BIN} \
   --flash-attn on \
   --cache-type-k q4_0 \
   --cache-type-v q4_0 \
+  --reasoning on \
   --host 0.0.0.0 \
   --port "${PORT}" \
   --alias "Qwen3.6-27B-MTP" \

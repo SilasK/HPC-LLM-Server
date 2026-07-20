@@ -45,9 +45,10 @@ No npm install needed — the plugin is a plain `.ts` file loaded at runtime.
 
 | Header | Value | Purpose |
 |--------|-------|---------|
-| `X-Session-ID` | `sessionUUID-agentName` | Per-subagent routing pin (each subagent gets its own worker) |
+| `X-Session-ID` | `sessionUUID` | Per-subagent routing pin (each subagent gets its own worker) |
+| `X-Agent-Type` | `agentName` | Subagent type for debugging/tracing |
 
-Subagents (e.g. `explore`, `general`) append their name to the base session UUID, so each (session, subagent) pair gets a distinct stable ID — enabling per-subagent KV cache pinning.
+Each subagent gets its own unique session ID from OpenCode, so no suffix is needed — uniqueness is guaranteed by the runtime.
 
 ### Porting to another machine
 
