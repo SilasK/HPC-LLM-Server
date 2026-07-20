@@ -895,10 +895,25 @@ async def _pool_get_worker() -> dict | str | None:
             pool_workers[sid]["active_requests"] += 1
             return s
 
-        return await _pool_create_worker()
+        # No ready workers: find GPU and CPU profile indices, create both
+        gpu_idxs = [i for i, p in enumerate(WORKER_PROFILES) if not p.get("nogpu")]
+        cpu_idxs = [i for i, p in enumerate(WORKER_PROFILES) if p.get("nogpu")]
+        gpu_pending_exists = any(
+            sid in pool_pending for sid, s in sessions.items()
+            if s.get("status") == "pending" and not s.get("profile", {}).get("nogpu")
+        )
+        cpu_pending_exists = any(
+            sid in pool_pending for sid, s in sessions.items()
+            if s.get("status") == "pending" and s.get("profile", {}).get("nogpu")
+        )
+        if gpu_idxs and not gpu_pending_exists:
+            asyncio.create_task(_pool_create_worker(gpu_idxs[0]))
+        if cpu_idxs and not cpu_pending_exists:
+            asyncio.create_task(_pool_create_worker(cpu_idxs[0]))
+        return None
 
 
-async def _pool_create_worker() -> str | None:
+async def _pool_create_worker(profile_idx: int | None = None) -> str | None:
     global _next_profile
     # If pending queue is full, cancel the oldest stale pending worker to make room
     if len(pool_pending) >= POOL_MAX_PENDING:
@@ -918,8 +933,11 @@ async def _pool_create_worker() -> str | None:
         else:
             return None
     session_id = str(uuid.uuid4())
-    profile = WORKER_PROFILES[_next_profile % len(WORKER_PROFILES)]
-    _next_profile += 1
+    if profile_idx is not None:
+        profile = WORKER_PROFILES[profile_idx]
+    else:
+        profile = WORKER_PROFILES[_next_profile % len(WORKER_PROFILES)]
+        _next_profile += 1
     session = {
         "id": session_id, "status": "pending",
         "model": "Qwen3.6-27B-MTP",
@@ -1065,6 +1083,12 @@ async def _pool_maintenance():
                     continue
 
                 if pw["active_requests"] == 0 and now - s["last_active"] > POOL_IDLE_TIMEOUT:
+                    # Keep CPU workers alive longer (overflow spare)
+                    nogpu = s.get("profile", {}).get("nogpu", False)
+                    cpu_idle_limit = POOL_IDLE_TIMEOUT * 6  # 60 min for CPU
+                    if nogpu and now - s["last_active"] < cpu_idle_limit:
+                        logger.debug(f"Keeping CPU spare worker {sid[:8]}")
+                        continue
                     # Demand-based spare: keep at least 1 idle worker if recent activity
                     recent = sum(1 for t in REQUEST_HISTORY if now - t < POOL_SPARE_WINDOW)
                     idle_count = sum(1 for pw2 in pool_workers.values() if pw2["active_requests"] == 0)

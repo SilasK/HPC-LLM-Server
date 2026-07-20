@@ -95,16 +95,20 @@ Each GPU can run one `llama-server` instance. With `-np N` and `--slots M`, mult
 
 ### Worker Profiles
 
-The pool cycles through four worker profiles to maximize GPU availability, with GPU workers always prioritized:
+The pool always submits both a GPU and a CPU worker when a new request arrives and no workers are ready:
 
-| Profile | QoS | Partition | GPU | -np | Slots | Memory | Quota |
-|---------|-----|-----------|-----|-----|-------|--------|-------|
-| 0 (GPU 3090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX3090 | 2 | 4 | 16G | ~4 GPUs/user |
-| 1 (GPU gratis) | `job_gratis` | `gpu` | 1× RTX4090 | 2 | 4 | 16G | 16 GPUs (account) |
-| 2 (GPU 4090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX4090 | 2 | 4 | 16G | ~4 GPUs/user |
-| 3 (CPU) | `job_cpu_preemptable` | `cpu-invest` | none | 1 | 2 | 64G | 82 nodes × 128 CPUs |
+| Profile | Type | QoS | Partition | GPU | -np | Slots | Memory | Spare timeout |
+|---------|------|-----|-----------|-----|-----|-------|--------|------|
+| 0 | GPU | `job_gpu_preemptable` | `gpu-invest` | 1× RTX3090 | 2 | 4 | 16G | 10 min |
+| 1 | GPU | `job_gratis` | `gpu` | 1× RTX4090 | 2 | 4 | 16G | 10 min |
+| 2 | GPU | `job_gpu_preemptable` | `gpu-invest` | 1× RTX4090 | 2 | 4 | 16G | 10 min |
+| 3 | CPU | `job_cpu_preemptable` | `cpu-invest` | none | 1 | 2 | 64G | 60 min |
 
-The pool always tries GPU first. If no GPU workers are running and none are pending, it spawns a GPU worker. CPU workers are created as fallback when GPUs are congested, but the pool continues trying GPU every maintenance cycle.
+**How routing works:**
+1. Request arrives, no workers ready → GPU + CPU submitted simultaneously
+2. First to start (usually CPU, shorter queue) serves the request
+3. When GPU arrives later, new requests route to GPU (faster inference)
+4. CPU stays as overflow spare, kept alive for 60 min
 
 ### Manual Override
 
