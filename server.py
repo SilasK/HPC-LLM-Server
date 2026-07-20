@@ -44,6 +44,12 @@ DEFAULT_MEM = os.environ.get("DEFAULT_MEM", "16G")
 SLURM_QOS = os.environ.get("SLURM_QOS", "job_gpu_preemptable")
 SLURM_PARTITION = os.environ.get("SLURM_PARTITION", "gpu-invest")
 
+WORKER_PROFILES = [
+    {"qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx4090:1", "np": "2", "slots": "4"},
+    {"qos": "job_gratis",          "partition": "gpu",        "gpu": "rtx4090:1", "np": "2", "slots": "4"},
+]
+_next_profile = 0
+
 sessions: dict[str, dict] = {}
 
 pool_workers: dict[str, dict] = {}
@@ -797,15 +803,21 @@ def _admin_users_html(email: str, role: str, users: list) -> str:
 
 
 async def _submit_job(session: dict) -> str | None:
+    profile = session.get("profile", {})
+    qos = profile.get("qos", SLURM_QOS)
+    partition = profile.get("partition", SLURM_PARTITION)
+    gpu = profile.get("gpu", DEFAULT_GPU)
+    np = profile.get("np", os.environ.get("LLAMA_NP", "2"))
+    slots = profile.get("slots", os.environ.get("LLAMA_SLOTS", "4"))
     env = {
         "SESSION_ID": session["id"],
         "SERVER_URL": SERVER_URL,
         "API_KEY": API_KEY,
         "LLAMA_BIN": LLAMA_BIN,
         "LLAMA_MODEL": LLAMA_MODEL,
-        "GPU_TYPE": session.get("gpu_type", DEFAULT_GPU),
-        "LLAMA_NP": os.environ.get("LLAMA_NP", "2"),
-        "LLAMA_SLOTS": os.environ.get("LLAMA_SLOTS", "4"),
+        "GPU_TYPE": session.get("gpu_type", gpu),
+        "LLAMA_NP": np,
+        "LLAMA_SLOTS": slots,
     }
     export_str = ",".join(f"{k}={v}" for k, v in env.items())
     log_dir = os.path.join(os.path.dirname(__file__), "logs")
@@ -820,9 +832,9 @@ async def _submit_job(session: dict) -> str | None:
         "--parsable",
     ]
     cmd += [
-        f"--qos={SLURM_QOS}", f"--partition={SLURM_PARTITION}",
+        f"--qos={qos}", f"--partition={partition}",
         "--nodes=1",
-        f"--gres=gpu:{session.get('gpu_type', DEFAULT_GPU)}",
+        f"--gres=gpu:{session.get('gpu_type', gpu)}",
         f"--time={session.get('walltime', DEFAULT_TIME)}",
         f"--mem={session.get('memory', DEFAULT_MEM)}",
     ]
@@ -833,7 +845,7 @@ async def _submit_job(session: dict) -> str | None:
             logger.error(f"sbatch failed: {result.stderr}")
             return None
         job_id = result.stdout.strip()
-        logger.info(f"Submitted preemptable job {job_id} for session {session['id']}")
+        logger.info(f"Submitted job {job_id} for session {session['id'][:8]} ({qos}/{partition}/{gpu})")
         return job_id
     except subprocess.TimeoutExpired:
         logger.error("sbatch timed out")
@@ -876,17 +888,20 @@ async def _pool_get_worker() -> dict | str | None:
 
 
 async def _pool_create_worker() -> str | None:
+    global _next_profile
     if len(pool_pending) >= POOL_MAX_PENDING:
         return None
     session_id = str(uuid.uuid4())
+    profile = WORKER_PROFILES[_next_profile % len(WORKER_PROFILES)]
+    _next_profile += 1
     session = {
         "id": session_id, "status": "pending",
         "model": "Qwen3.6-27B-MTP",
         "slurm_job_id": None, "worker_url": None,
         "created_at": time.time(), "last_active": time.time(),
-        "gpu_type": DEFAULT_GPU, "walltime": DEFAULT_TIME,
+        "gpu_type": profile["gpu"], "walltime": DEFAULT_TIME,
         "memory": DEFAULT_MEM, "mode": "gpu", "restart_count": 0,
-        "auto": True, "pool": True,
+        "auto": True, "pool": True, "profile": profile,
     }
     sessions[session_id] = session
     pool_pending.add(session_id)

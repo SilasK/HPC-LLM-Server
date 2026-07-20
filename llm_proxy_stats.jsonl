@@ -56518,3 +56518,20 @@
 {"event": "pool_status", "ts": 1784547116.4684923, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 6, "pool_capacity": 0, "pool_load": 0}
 {"event": "pool_status", "ts": 1784547146.5146575, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 6, "pool_capacity": 0, "pool_load": 0}
 {"event": "pool_status", "ts": 1784547176.5595584, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 6, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_removed", "ts": 1784547205.0912962, "worker_session": "0330103b-c4c6-43ff-a3c0-eb9d7fe27e3c", "reason": "user_cancelled"}
+{"event": "worker_removed", "ts": 1784547205.1006162, "worker_session": "f6141500-a147-439f-ac24-1d6122b832c9", "reason": "user_cancelled"}
+{"event": "worker_removed", "ts": 1784547205.1101625, "worker_session": "8ba44091-7449-49d9-8fcd-961f909cabfa", "reason": "user_cancelled"}
+{"event": "worker_removed", "ts": 1784547205.1192625, "worker_session": "6a20a596-b045-4f82-a8ea-5e3b88579214", "reason": "user_cancelled"}
+{"event": "worker_removed", "ts": 1784547205.12889, "worker_session": "a0b53eb5-1d44-4d9d-9ce4-b4e51c17e4dd", "reason": "user_cancelled"}
+{"event": "worker_removed", "ts": 1784547205.137306, "worker_session": "878c9d13-bf53-411e-a6a8-8660420e54c2", "reason": "user_cancelled"}
+{"event": "pool_status", "ts": 1784547206.6066563, "active_workers": 0, "pinned_workers": 0, "pending": 0, "total_sessions": 6, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784547233.7890496, "worker_session": "83598be1-8690-488d-8814-28265cf0f80f", "slurm_job_id": "9578178", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784547236.6067593, "active_workers": 0, "pinned_workers": 0, "pending": 1, "total_sessions": 7, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784547236.63085, "worker_session": "7d6bab99-fb1e-4d4f-b663-97e294589b61", "slurm_job_id": "9578182", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784547266.6199844, "active_workers": 0, "pinned_workers": 0, "pending": 2, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784547266.6656573, "worker_session": "9c500d81-38e0-44c2-a795-ebc6c8f9b3bd", "slurm_job_id": "9578211", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784547296.6455252, "active_workers": 0, "pinned_workers": 0, "pending": 3, "total_sessions": 9, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784547296.6918986, "worker_session": "58533fbe-2062-4a9c-8d11-3c3abde0c20a", "slurm_job_id": "9578221", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784547326.6809092, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 10, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1784547356.728633, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 10, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1784547386.7723527, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 10, "pool_capacity": 0, "pool_load": 0}

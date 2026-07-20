@@ -40,13 +40,23 @@ Ubelix HPC cluster at University of Bern. The proxy submits GPU jobs to SLURM fo
 
 ### Available for `gratis` account
 
-Only one QoS is available:
+| QoS | Priority | Max Walltime | GPU Limits | Notes |
+|-----|----------|-------------|-----------|-------|
+| `job_gpu_preemptable` | 0 (lowest) | 6 hours | ~4 GPU/user (observed) | Can be preempted; no cost |
+| `job_gratis` | 0 | unlimited | 16× RTX4090, 7× H100 (account cap) | No preemption risk; separate quota |
+| `job_debug` | 50 | 20 min | 1 job max | For quick tests only |
 
-| QoS | Priority | Max Walltime | Notes |
-|-----|----------|-------------|-------|
-| `job_gpu_preemptable` | 0 (lowest) | 6 hours | Can be preempted; no cost; **only option for gratis account** |
+**Only `job_gpu_preemptable` and `job_gratis`** are usable by the `gratis` account. Other QoS (`job_gpu`, `job_gpu_invest`, `job_gpu_short`) require a different account.
 
-Other QoS exist (`job_gpu`, `job_gpu_invest`, `job_gpu_short`) but are not available to the `gratis` account.
+### QoS Comparison
+
+| | `job_gpu_preemptable` | `job_gratis` |
+|---|---|---|
+| Partition | `gpu-invest` | `gpu` |
+| GPU types | RTX3090, RTX4090 | RTX4090, H100 (no RTX3090) |
+| Per-user cap | ~4 GPUs | 16 RTX4090 / 7 H100 (account-wide) |
+| Preemptible | Yes | Yes (but less contention) |
+| Cost | Free | Free |
 
 ### Known Limitations
 
@@ -83,13 +93,26 @@ Each GPU can run one `llama-server` instance. With `-np N` and `--slots M`, mult
 | QoS | `SLURM_QOS` | `job_gpu_preemptable` | SLURM QoS |
 | Partition | `SLURM_PARTITION` | `gpu-invest` | SLURM partition |
 
-### Recommended Configurations
+### Worker Profiles
 
-| Setup | `DEFAULT_GPU` | `LLAMA_NP` | `LLAMA_SLOTS` | Use Case |
-|-------|---------------|-----------|--------------|----------|
-| 1× RTX4090 | `rtx4090:1` | 2 | 4 | Default — good balance |
-| 1× RTX3090 | `rtx3090:1` | 2 | 4 | Cheaper, good for light load |
-| 2× RTX3090 | `rtx3090:2` | 4 | 8 | Higher concurrency, more VRAM |
+The pool cycles through two worker profiles to maximize GPU availability:
+
+| Profile | QoS | Partition | GPU | -np | Slots | Quota |
+|---------|-----|-----------|-----|-----|-------|-------|
+| 0 (preemptable) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX4090 | 2 | 4 | ~4 GPUs |
+| 1 (gratis) | `job_gratis` | `gpu` | 1× RTX4090 | 2 | 4 | 16 GPUs |
+
+### Manual Override
+
+Override all profiles by setting env vars on the proxy:
+
+| Env Var | Default | Purpose |
+|---------|---------|---------|
+| `SLURM_QOS` | `job_gpu_preemptable` | Single-QoS override (disables profiles) |
+| `SLURM_PARTITION` | `gpu-invest` | Single-partition override |
+| `DEFAULT_GPU` | `rtx4090:1` | GPU type for non-profile mode |
+| `LLAMA_NP` | `2` | Parallel decoders |
+| `LLAMA_SLOTS` | `4` | KV cache slots |
 
 ---
 
