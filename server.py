@@ -57,13 +57,14 @@ sessions: dict[str, dict] = {}
 pool_workers: dict[str, dict] = {}
 pool_pending: set[str] = set()
 _pool_create_lock = asyncio.Lock()
-POOL_MAX_PENDING = 4
+POOL_MAX_PENDING = 6
 POOL_NP = 2
 POOL_IDLE_TIMEOUT = 600
 POOL_RENEW_LEAD = 300
 POOL_SCALE_UP = 0.7
 POOL_HEALTH_RETRIES = 2
 POOL_MIN_SPARE = 2  # keep at least 2 idle workers
+POOL_MIN_GPU_WORKERS = 1  # always try to keep 1 GPU worker minimum
 POOL_SPARE_WINDOW = 900  # 15 min window for demand tracking
 POOL_SPARE_THRESHOLD = 2  # requests in window to keep spare
 
@@ -1156,6 +1157,14 @@ async def _pool_maintenance():
                 if idle_count < POOL_MIN_SPARE:
                     logger.info(f"Recent activity ({recent} reqs), spawning spare worker")
                     asyncio.create_task(_pool_create_worker())
+            # GPU recovery: spawn a GPU worker if none running and no GPU pending
+            gpu_workers = sum(1 for sid, pw in pool_workers.items()
+                              if not sessions.get(sid, {}).get("profile", {}).get("nogpu"))
+            gpu_pending = sum(1 for sid in pool_pending
+                              if not sessions.get(sid, {}).get("profile", {}).get("nogpu"))
+            if gpu_workers < POOL_MIN_GPU_WORKERS and gpu_pending == 0 and len(pool_pending) < POOL_MAX_PENDING:
+                logger.info("No GPU workers running or pending, spawning GPU worker")
+                asyncio.create_task(_pool_create_worker())
         except Exception as e:
             logger.error(f"Pool maintenance error: {e}")
 

@@ -95,14 +95,16 @@ Each GPU can run one `llama-server` instance. With `-np N` and `--slots M`, mult
 
 ### Worker Profiles
 
-The pool cycles through four worker profiles to maximize GPU availability:
+The pool cycles through four worker profiles to maximize GPU availability, with GPU workers always prioritized:
 
 | Profile | QoS | Partition | GPU | -np | Slots | Memory | Quota |
 |---------|-----|-----------|-----|-----|-------|--------|-------|
-| 0 (3090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX3090 | 2 | 4 | 16G | ~4 GPUs/user |
-| 1 (gratis) | `job_gratis` | `gpu` | 1× RTX4090 | 2 | 4 | 16G | 16 GPUs (account) |
-| 2 (4090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX4090 | 2 | 4 | 16G | ~4 GPUs/user |
+| 0 (GPU 3090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX3090 | 2 | 4 | 16G | ~4 GPUs/user |
+| 1 (GPU gratis) | `job_gratis` | `gpu` | 1× RTX4090 | 2 | 4 | 16G | 16 GPUs (account) |
+| 2 (GPU 4090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX4090 | 2 | 4 | 16G | ~4 GPUs/user |
 | 3 (CPU) | `job_cpu_preemptable` | `cpu-invest` | none | 1 | 2 | 64G | 82 nodes × 128 CPUs |
+
+The pool always tries GPU first. If no GPU workers are running and none are pending, it spawns a GPU worker. CPU workers are created as fallback when GPUs are congested, but the pool continues trying GPU every maintenance cycle.
 
 ### Manual Override
 
