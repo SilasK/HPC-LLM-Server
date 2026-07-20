@@ -48,12 +48,12 @@ pool_workers: dict[str, dict] = {}
 pool_pending: set[str] = set()
 _pool_create_lock = asyncio.Lock()
 POOL_MAX_PENDING = 4
-POOL_NP = 1
+POOL_NP = 2
 POOL_IDLE_TIMEOUT = 600
 POOL_RENEW_LEAD = 300
 POOL_SCALE_UP = 0.7
 POOL_HEALTH_RETRIES = 2
-POOL_MIN_SPARE = 1  # keep at least 1 idle worker
+POOL_MIN_SPARE = 2  # keep at least 2 idle workers
 POOL_SPARE_WINDOW = 900  # 15 min window for demand tracking
 POOL_SPARE_THRESHOLD = 2  # requests in window to keep spare
 

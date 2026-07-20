@@ -28,7 +28,8 @@ ${LLAMA_BIN} \
   --host 0.0.0.0 \
   --port "${PORT}" \
   --alias "Qwen3.6-27B-MTP" \
-  -np 1 \
+  -np 2 \
+  --slots 4 \
   &>/rs_scratch/users/sk25f059/llama_serve_${SESSION_ID}.log &
 LLAMA_PID=$!
 echo "llama-server PID: $LLAMA_PID"
