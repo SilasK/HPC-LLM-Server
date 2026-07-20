@@ -82,6 +82,37 @@ Stats are logged to `llm_proxy_stats.jsonl` as newline-delimited JSON. Each line
 
 ## Common Queries
 
+### QoS Performance Comparison
+
+```python
+import json
+lines = [json.loads(l) for l in open("llm_proxy_stats.jsonl")]
+reqs = [d for d in lines if d["event"] == "request"]
+
+# Success rate by QoS
+from collections import Counter
+by_qos = {}
+for d in reqs:
+    qos = d.get("qos", "unknown")
+    by_qos.setdefault(qos, {"ok": 0, "err": 0, "cache_hits": 0, "total_idle": 0, "count": 0})
+    by_qos[qos]["ok"] += 1 if d.get("status") == 200 else 0
+    by_qos[qos]["cache_hits"] += 1 if d.get("cache_hit") else 0
+    by_qos[qos]["total_idle"] += d.get("worker_idle_before", 0)
+    by_qos[qos]["count"] += 1
+
+errors = [d for d in lines if d["event"] == "request_error"]
+for d in errors:
+    qos = d.get("qos", "unknown")
+    by_qos.setdefault(qos, {"ok": 0, "err": 0, "cache_hits": 0, "total_idle": 0, "count": 0})
+    by_qos[qos]["err"] += 1
+
+for qos, v in sorted(by_qos.items()):
+    total = v["ok"] + v["err"]
+    print(f"{qos:30s}: {v['ok']:3d} ok / {v['err']:2d} err ({v['ok']/max(total,1)*100:.0f}%)  "
+          f"cache={v['cache_hits']/max(v['count'],1)*100:.0f}%  "
+          f"avg_idle={v['total_idle']/max(v['count'],1):.1f}s")
+```
+
 ### Pool capacity vs pending over time
 ```python
 import json

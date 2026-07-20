@@ -56535,3 +56535,26 @@
 {"event": "pool_status", "ts": 1784547326.6809092, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 10, "pool_capacity": 0, "pool_load": 0}
 {"event": "pool_status", "ts": 1784547356.728633, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 10, "pool_capacity": 0, "pool_load": 0}
 {"event": "pool_status", "ts": 1784547386.7723527, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 10, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784548146.373285, "worker_session": "df6680e7-a4af-4c95-81d3-6115db2a2c44", "slurm_job_id": "9578979", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784548146.6971006, "active_workers": 0, "pinned_workers": 0, "pending": 1, "total_sessions": 1, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784548146.7212894, "worker_session": "404af550-4b52-4198-a12a-2cb67adaa6a6", "slurm_job_id": "9578980", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1784548159.587917, "worker_session": "a92f539c-b255-4a07-bd27-6732b43937de", "slurm_job_id": "9578998", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1784548159.713569, "worker_session": "7191a04b-ac74-4416-8f97-756d0f002035", "slurm_job_id": "9578999", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_removed", "ts": 1784548176.7219117, "worker_session": "404af550-4b52-4198-a12a-2cb67adaa6a6", "reason": "slurm_failed"}
+{"event": "worker_removed", "ts": 1784548176.733988, "worker_session": "df6680e7-a4af-4c95-81d3-6115db2a2c44", "reason": "slurm_failed"}
+{"event": "pool_status", "ts": 1784548176.7093859, "active_workers": 0, "pinned_workers": 0, "pending": 2, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784548176.7737238, "worker_session": "25af21d1-360b-4454-8a6e-bc10c7709de3", "slurm_job_id": "9579019", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1784548206.066123, "worker_session": "81eccb14-08cb-4fd1-8464-4122f190ed58", "slurm_job_id": "9579072", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784548206.755861, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 6, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_removed", "ts": 1784548236.8417916, "worker_session": "25af21d1-360b-4454-8a6e-bc10c7709de3", "reason": "slurm_failed"}
+{"event": "worker_removed", "ts": 1784548236.8520732, "worker_session": "7191a04b-ac74-4416-8f97-756d0f002035", "reason": "slurm_failed"}
+{"event": "worker_removed", "ts": 1784548236.8628924, "worker_session": "a92f539c-b255-4a07-bd27-6732b43937de", "reason": "slurm_failed"}
+{"event": "pool_status", "ts": 1784548236.8003526, "active_workers": 0, "pinned_workers": 0, "pending": 1, "total_sessions": 6, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784548236.881741, "worker_session": "18b357c0-80ea-4bec-a4ae-0f5eabbd8a49", "slurm_job_id": "9579104", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784548266.862944, "active_workers": 0, "pinned_workers": 0, "pending": 2, "total_sessions": 7, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784548266.8982644, "worker_session": "cb64c8b6-92ae-4304-9931-2e9b354bcc4e", "slurm_job_id": "9579145", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_removed", "ts": 1784548296.8998978, "worker_session": "81eccb14-08cb-4fd1-8464-4122f190ed58", "reason": "slurm_failed"}
+{"event": "worker_removed", "ts": 1784548296.9115095, "worker_session": "18b357c0-80ea-4bec-a4ae-0f5eabbd8a49", "reason": "slurm_failed"}
+{"event": "worker_removed", "ts": 1784548296.9235163, "worker_session": "cb64c8b6-92ae-4304-9931-2e9b354bcc4e", "reason": "slurm_failed"}
+{"event": "pool_status", "ts": 1784548296.886288, "active_workers": 0, "pinned_workers": 0, "pending": 0, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784548300.3952153, "worker_session": "ea299271-97de-4bfe-817a-5070f786bffe", "slurm_job_id": "9579168", "source": "pool", "model": "Qwen3.6-27B-MTP"}

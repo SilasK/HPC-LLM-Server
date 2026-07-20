@@ -913,6 +913,8 @@ async def _pool_create_worker() -> str | None:
             "event": "worker_created", "ts": time.time(),
             "worker_session": session_id, "slurm_job_id": job_id,
             "source": "pool", "model": "Qwen3.6-27B-MTP",
+            "qos": profile["qos"], "partition": profile["partition"],
+            "gpu": profile["gpu"], "np": int(profile["np"]), "slots": int(profile["slots"]),
         })
         return session_id
     else:
@@ -1593,6 +1595,7 @@ async def _proxy(request: Request, path: str):
         resp_body = resp.json() if "chat/completions" in path and "application/json" in resp.headers.get("content-type", "") else None
         _track_usage_response(request, path, resp)
         usage = resp_body.get("usage") if resp_body else None
+        prof = s.get("profile", {})
         _log_stats_event({
             "event": "request", "ts": time.time(),
             "opencode_session": opencode_session, "worker_session": session_id,
@@ -1600,14 +1603,19 @@ async def _proxy(request: Request, path: str):
             "status": resp.status_code, "worker_idle_before": worker_idle_before,
             "prompt_tokens": usage.get("prompt_tokens") if usage else None,
             "completion_tokens": usage.get("completion_tokens") if usage else None,
+            "qos": prof.get("qos"), "partition": prof.get("partition"),
+            "gpu": prof.get("gpu"),
         })
         return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
     except httpx.RequestError as e:
         logger.error(f"Proxy error for {session_id}: {e}")
+        prof = s.get("profile", {})
         _log_stats_event({
             "event": "request_error", "ts": time.time(),
             "opencode_session": opencode_session, "worker_session": session_id,
             "path": path, "worker_idle_before": worker_idle_before, "error": str(e),
+            "qos": prof.get("qos"), "partition": prof.get("partition"),
+            "gpu": prof.get("gpu"),
         })
         return JSONResponse(status_code=502, content={"error": {"message": str(e), "type": "proxy_error", "code": 502}})
     finally:
