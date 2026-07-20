@@ -56492,3 +56492,14 @@
 {"event": "worker_created", "ts": 1784546658.8838298, "worker_session": "2f4fc582-b9f1-4e18-aaca-b82d95d7ec3a", "slurm_job_id": "9577675", "source": "pool", "model": "Qwen3.6-27B-MTP"}
 {"event": "pool_status", "ts": 1784546688.8629837, "active_workers": 0, "pinned_workers": 0, "pending": 3, "total_sessions": 3, "pool_capacity": 0, "pool_load": 0}
 {"event": "worker_created", "ts": 1784546688.907324, "worker_session": "cd3bf8e6-7dd5-4cee-ab89-1ed6ec03a974", "slurm_job_id": "9577701", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784546751.2468402, "active_workers": 0, "pinned_workers": 0, "pending": 0, "total_sessions": 0, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1784546781.2482352, "active_workers": 0, "pinned_workers": 0, "pending": 0, "total_sessions": 0, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784546799.1988323, "worker_session": "380d4006-e8e4-4437-aed2-008537948eee", "slurm_job_id": "9577816", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784546811.2492774, "active_workers": 0, "pinned_workers": 0, "pending": 1, "total_sessions": 1, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784546811.2814786, "worker_session": "f1134c5b-9d0c-4851-9b9a-7f6c915bf0bc", "slurm_job_id": "9577825", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1784546821.6135342, "worker_session": "1749eb70-0056-48a7-9370-b829029cc271", "slurm_job_id": "9577831", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "worker_created", "ts": 1784546835.3702717, "worker_session": "01e05a6d-0a6b-4fee-b3fc-707521d29ac0", "slurm_job_id": "9577842", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784546841.2610543, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1784546871.3036578, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1784546901.3512566, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
+{"event": "pool_status", "ts": 1784546931.3972855, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}

@@ -11,11 +11,14 @@ echo "Server: $SERVER_URL"
 PORT=$(( ( RANDOM % 20000 ) + 10000 ))
 MODEL="${LLAMA_MODEL:-/rs_scratch/users/sk25f059/models/Qwen3.6-27B-UD-Q4_K_XL.gguf}"
 LLAMA_BIN="${LLAMA_BIN:-/rs_scratch/users/sk25f059/llama.cpp/build/bin/llama-server}"
+NP="${LLAMA_NP:-2}"
+SLOTS="${LLAMA_SLOTS:-4}"
 
 export LD_LIBRARY_PATH="/software.9/software/GCCcore/14.2.0/lib64:/software.9/software/CUDA/12.8.0/lib64:${LD_LIBRARY_PATH:-}"
 
 echo "Starting llama-server on 0.0.0.0:${PORT}"
 echo "Model: ${MODEL}"
+echo "Parallel decoders: ${NP}, Slots: ${SLOTS}"
 
 ${LLAMA_BIN} \
   --model "${MODEL}" \
@@ -28,8 +31,8 @@ ${LLAMA_BIN} \
   --host 0.0.0.0 \
   --port "${PORT}" \
   --alias "Qwen3.6-27B-MTP" \
-  -np 2 \
-  --slots 4 \
+  -np "${NP}" \
+  --slots "${SLOTS}" \
   &>/rs_scratch/users/sk25f059/llama_serve_${SESSION_ID}.log &
 LLAMA_PID=$!
 echo "llama-server PID: $LLAMA_PID"

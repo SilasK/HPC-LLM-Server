@@ -802,6 +802,8 @@ async def _submit_job(session: dict) -> str | None:
         "LLAMA_BIN": LLAMA_BIN,
         "LLAMA_MODEL": LLAMA_MODEL,
         "GPU_TYPE": session.get("gpu_type", DEFAULT_GPU),
+        "LLAMA_NP": os.environ.get("LLAMA_NP", "2"),
+        "LLAMA_SLOTS": os.environ.get("LLAMA_SLOTS", "4"),
     }
     export_str = ",".join(f"{k}={v}" for k, v in env.items())
     log_dir = os.path.join(os.path.dirname(__file__), "logs")
