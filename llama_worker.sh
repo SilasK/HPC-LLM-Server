@@ -41,7 +41,7 @@ ${LLAMA_BIN} \
   --port "${PORT}" \
   --alias "Qwen3.6-27B-MTP" \
   -np "${NP}" \
-  --slots "${SLOTS}" \
+  --parallel-reserve "${SLOTS}" \
   &>/rs_scratch/users/sk25f059/llama_serve_${SESSION_ID}.log &
 LLAMA_PID=$!
 echo "llama-server PID: $LLAMA_PID"
