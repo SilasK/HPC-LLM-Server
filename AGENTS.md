@@ -1,3 +1,68 @@
+# LLM Proxy — Client Setup
+
+## OpenCode Plugin: Session Headers
+
+The server uses the `X-Session-ID` header for session-pinned routing (KV cache reuse). Each OpenCode subagent gets its own unique ID so it can be pinned to a different worker.
+
+### One-time setup (per machine)
+
+```bash
+# 1. Create plugins directory if needed
+mkdir -p ~/.config/opencode/plugins
+
+# 2. Download the plugin
+curl -o ~/.config/opencode/plugins/session-headers.ts \
+  https://raw.githubusercontent.com/SilasK/HPC-LLM-Server/main/opencode-plugin-session-headers.ts
+```
+
+### 3. Add to `~/.config/opencode/opencode.json`
+
+```json
+{
+  "plugin": ["./plugins/session-headers.ts"],
+  "provider": {
+    "my-hpc-llm": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "HPC LLM",
+      "options": {
+        "baseURL": "http://submit01:7535/v1",
+        "apiKey": "<your-api-key>"
+      },
+      "models": {
+        "Qwen3.6-27B-MTP": {
+          "name": "Qwen 3.6 27B",
+          "limit": { "context": 131072, "output": 8192 }
+        }
+      }
+    }
+  }
+}
+```
+
+No npm install needed — the plugin is a plain `.ts` file loaded at runtime.
+
+### What the plugin sends
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `X-Session-ID` | `sessionUUID-agentName` | Per-subagent routing pin (each subagent gets its own worker) |
+
+Subagents (e.g. `explore`, `general`) append their name to the base session UUID, so each (session, subagent) pair gets a distinct stable ID — enabling per-subagent KV cache pinning.
+
+### Porting to another machine
+
+Copy just two files:
+
+```bash
+# From a machine that already has it set up:
+scp ~/.config/opencode/plugins/session-headers.ts user@other-machine:~/.config/opencode/plugins/
+scp ~/.config/opencode/opencode.json user@other-machine:~/.config/opencode/
+```
+
+Or re-run the `curl` command above.
+
+---
+
 # LLM Proxy — Stats & Debugging
 
 Stats are logged to `llm_proxy_stats.jsonl` as newline-delimited JSON. Each line is one event.

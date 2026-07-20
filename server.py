@@ -513,7 +513,7 @@ def _dashboard_html(email: str, role: str) -> str:
 {_nav_html(email, role, 'dashboard')}
 <div class="container">
 <div class="stats" id="stats-cards">
-<div class="stat-card"><div class="label">Sessions Total</div><div class="value blue" id="stat-sessions">-</div></div>
+<div class="stat-card"><div class="label">Active</div><div class="value blue" id="stat-active">-</div></div>
 <div class="stat-card"><div class="label">Ready</div><div class="value green" id="stat-ready">-</div></div>
 <div class="stat-card"><div class="label">Pending</div><div class="value yellow" id="stat-pending">-</div></div>
 <div class="stat-card"><div class="label">Pinned</div><div class="value purple" id="stat-pinned">-</div></div>
@@ -525,6 +525,10 @@ def _dashboard_html(email: str, role: str) -> str:
 <button onclick="cancelAllPending()" style="float:right;padding:0.25rem 0.75rem;background:#7f1d1d;border:1px solid #f87171;border-radius:6px;color:#f87171;font-size:0.75rem;font-weight:600;cursor:pointer;">Cancel All Pending</button>
 </h3>
 <div id="sessions-table"><div class="empty-state">Loading...</div></div>
+</div>
+<div class="section">
+<h3>&#x23f1; Activity (last 5 min)</h3>
+<div id="activity-table"><div class="empty-state">Loading...</div></div>
 </div>
 <div class="section">
 <h3>&#x1f4ca; LLM Usage by API Key</h3>
@@ -569,19 +573,21 @@ def _dashboard_html(email: str, role: str) -> str:
     }}
   }}
 }}</div>
+<p style="margin-top:0.5rem;margin-bottom:0.5rem;">This model has <strong>thinking/reasoning</strong> enabled by default. Qwen3 outputs its reasoning before the final answer, visible in the <code>reasoning_content</code> field.</p>
 <ol start="2" style="padding-left:1.25rem;margin-bottom:0.75rem;">
 <li>Install the session plugin for KV cache reuse:</li>
 </ol>
-<div class="code-block">cd ~/.config/opencode
-npm install opencode-helicone-session</div>
+<div class="code-block"># Download the plugin from the server repo
+curl -o ~/.config/opencode/plugins/session-headers.ts \
+  https://raw.githubusercontent.com/SilasK/HPC-LLM-Server/main/opencode-plugin-session-headers.ts</div>
 <ol start="3" style="padding-left:1.25rem;margin-bottom:0.75rem;">
 <li>Add to <code>opencode.json</code>:</li>
 </ol>
-<div class="code-block">"plugin": ["opencode-helicone-session"]</div>
+<div class="code-block">"plugin": ["./plugins/session-headers.ts"]</div>
 
 <p style="margin-bottom:0.5rem;"><strong>How session pinning works:</strong></p>
 <ul style="padding-left:1.25rem;margin-bottom:0.5rem;">
-<li>On first request with <code>X-Session-ID</code>, a GPU worker is allocated and <strong>pinned</strong> to that session</li>
+<li>On first request with <code>X-Session-ID</code>, a GPU worker is allocated and <strong>pinned</strong> to that session+subagent</li>
 <li>Subsequent requests with the same ID are routed to the <strong>same worker</strong> — KV cache is preserved</li>
 <li>After <strong>5 minutes idle</strong>, the pin is released. Worker goes back to the pool for other sessions</li>
 <li>If the original session returns later, it gets a (possibly different) worker and starts fresh</li>
@@ -615,7 +621,7 @@ const ready = sessions.filter(s => s.status === 'ready').length;
 const pending = sessions.filter(s => s.status === 'pending').length;
 const pinned = liveStats.summary?.pinned_now || 0;
 const cacheRate = liveStats.summary?.cache_hit_rate ?? '-';
-document.getElementById('stat-sessions').textContent = sessions.length;
+document.getElementById('stat-active').textContent = ready + pending;
 document.getElementById('stat-ready').textContent = ready;
 document.getElementById('stat-pending').textContent = pending;
 document.getElementById('stat-pinned').textContent = pinned;
@@ -640,11 +646,13 @@ document.getElementById('live-stats').innerHTML = lhtml;
 let shtml = '';
 if (sessions.length === 0) {{ shtml = '<div class="empty-state">No sessions</div>'; }}
 else {{
-shtml = '<table><thead><tr><th>Session ID</th><th>Status</th><th>Model</th><th>Slurm Job</th><th>Worker</th><th>Uptime</th><th>Created</th></tr></thead><tbody>';
+shtml = '<table><thead><tr><th>Session ID</th><th>Status</th><th>Model</th><th>Slurm Job</th><th>Worker</th><th>Requests</th><th>Cache</th><th>Tokens</th><th>Idle</th><th>Created</th></tr></thead><tbody>';
 for (const s of sessions) {{
 const uptime = s.uptime ? fmtDuration(s.uptime) : (s.status === 'pending' ? 'queued' : '-');
                     const statusLabel = s.status === 'pending' && s.slurm_state === 'RUNNING' ? 'starting' : s.status === 'pending' && s.slurm_state === 'PENDING' ? 'queued' : s.status;
-                    shtml += `<tr><td class="mono">${{s.session_id.slice(0,8)}}&hellip;</td><td>${{badge(statusLabel)}}</td><td>${{s.model}}</td><td class="mono">${{s.slurm_job_id || '-'}}</td><td class="mono">${{s.worker_url ? s.worker_url.split('//')[1] : '-'}}</td><td>${{uptime}}</td><td>${{age(s.created_at)}}</td></tr>`;
+                    const cacheStr = s.cache_hits ? `<span style="color:#22c55e;">${{s.cache_hits}}H</span>/<span style="color:#f87171;">${{s.cache_misses}}M</span>` : '-';
+                    const idleStr = s.idle > 0 ? fmtDuration(s.idle) : (s.status === 'ready' ? 'active' : '-');
+                    shtml += `<tr><td class="mono">${{s.session_id.slice(0,8)}}&hellip;</td><td>${{badge(statusLabel)}}</td><td>${{s.model}}</td><td class="mono">${{s.slurm_job_id || '-'}}</td><td class="mono">${{s.worker_url ? s.worker_url.split('//')[1] : '-'}}</td><td>${{s.requests || 0}}</td><td style="font-size:0.75rem;">${{cacheStr}}</td><td style="font-size:0.75rem;">${{fmt(s.total_tokens || 0)}}</td><td style="font-size:0.75rem;">${{idleStr}}</td><td>${{age(s.created_at)}}</td></tr>`;
 }}
 shtml += '</tbody></table>';
 }}
@@ -659,6 +667,18 @@ uhtml += `<tr><td>${{row.key_name}}</td><td>${{row.user_email}}</td><td class="m
 uhtml += '</tbody></table>';
 }}
 document.getElementById('usage-table').innerHTML = uhtml;
+let ahtml = '';
+const activity = liveStats.activity || [];
+if (activity.length === 0) {{ ahtml = '<div class="empty-state">No activity in last 5 min</div>'; }}
+else {{
+ahtml = '<table><thead><tr><th>Minute</th><th>Requests</th><th>Cache Hits</th><th>Prompt Tokens</th><th>Completion Tokens</th></tr></thead><tbody>';
+for (const b of activity) {{
+const t = new Date(b.minute * 1000).toLocaleTimeString();
+ahtml += `<tr><td style="font-size:0.75rem;">${{t}}</td><td>${{b.requests}}</td><td>${{b.cache_hits}}</td><td style="font-size:0.75rem;">${{fmt(b.prompt_tokens)}}</td><td style="font-size:0.75rem;">${{fmt(b.completion_tokens)}}</td></tr>`;
+}}
+ahtml += '</tbody></table>';
+}}
+document.getElementById('activity-table').innerHTML = ahtml;
 }} catch(e) {{ document.getElementById('sessions-table').innerHTML = '<div class="empty-state">Error loading data</div>'; }}
 }}
 load();
@@ -734,7 +754,7 @@ curl -X POST http://submit01:7535/v1/chat/completions \\
 }}'</div>
 <p style="margin-bottom:0.5rem;"><strong>Limits:</strong></p>
 <table class="limits-table"><thead><tr><th>Limit</th><th>Value</th></tr></thead><tbody>
-<tr><td>Context window</td><td>32,768 tokens</td></tr>
+<tr><td>Context window</td><td>131,072 tokens</td></tr>
 <tr><td>Max output</td><td>8,192 tokens</td></tr>
 <tr><td>Concurrent requests</td><td>4 per worker (auto-scales)</td></tr>
 </tbody></table>
@@ -878,6 +898,7 @@ async def _pool_create_worker() -> str | None:
         return session_id
     else:
         session["status"] = "failed"
+        session["completed_at"] = time.time()
         pool_pending.discard(session_id)
         logger.error(f"Pool sbatch failed for {session_id[:8]}")
         return None
@@ -921,6 +942,7 @@ async def _pool_maintenance():
                         pool_pending.discard(sid)
                         s.pop("pinned_for_session", None)
                         s["status"] = "completed"
+                        s["completed_at"] = time.time()
 
             for sid, pw in list(pool_workers.items()):
                 s = sessions.get(sid)
@@ -957,6 +979,7 @@ async def _pool_maintenance():
                         pool_workers.pop(sid, None)
                         s.pop("pinned_for_session", None)
                         s["status"] = "completed"
+                        s["completed_at"] = time.time()
                         if s.get("slurm_job_id"):
                             subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
                     continue
@@ -993,6 +1016,7 @@ async def _pool_maintenance():
                         pool_workers.pop(sid, None)
                         s.pop("pinned_for_session", None)
                         s["status"] = "completed"
+                        s["completed_at"] = time.time()
                         if s.get("slurm_job_id"):
                             subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
                     continue
@@ -1021,6 +1045,7 @@ async def _pool_maintenance():
                                             del session_routes[oc_sid]
                                     s.pop("pinned_for_session", None)
                                     s["status"] = "completed"
+                                    s["completed_at"] = time.time()
                                     pool_workers.pop(sid, None)
                                     asyncio.create_task(_pool_create_worker())
                     except Exception:
@@ -1032,6 +1057,12 @@ async def _pool_maintenance():
                 if ws is None or ws.get("status") in ("completed", "failed", "cancelled"):
                     del session_routes[oc_sid]
                     logger.info(f"Cleaned up stale pin {oc_sid[:8]} -> dead worker {w_sid[:8]}")
+
+            # Clean up sessions that have been completed/failed/cancelled for >1h
+            for sid in list(sessions.keys()):
+                s = sessions[sid]
+                if s.get("completed_at") and now - s["completed_at"] > 3600:
+                    del sessions[sid]
 
             total_active = sum(pw["active_requests"] for pw in pool_workers.values())
             total_cap = len(pool_workers) * POOL_NP
@@ -1220,6 +1251,34 @@ async def delete_key(key_id: int, sess=Depends(_require_dashboard_session)):
 @app.get("/admin/sessions")
 async def admin_sessions(_=Depends(_require_dashboard_session)):
     now = time.time()
+    # Aggregate per-session stats from recent request events
+    session_stats: dict[str, dict] = {}
+    if os.path.exists(STATS_LOG):
+        try:
+            with open(STATS_LOG) as f:
+                lines = f.readlines()
+            for line in lines[-500:]:
+                line = line.strip()
+                if not line:
+                    continue
+                e = json.loads(line)
+                if e.get("event") != "request":
+                    continue
+                ws = e.get("worker_session")
+                if not ws:
+                    continue
+                st = session_stats.setdefault(ws, {"requests": 0, "cache_hits": 0, "cache_misses": 0, "total_tokens": 0})
+                st["requests"] += 1
+                if e.get("cache_hit"):
+                    st["cache_hits"] += 1
+                else:
+                    st["cache_misses"] += 1
+                pt = e.get("prompt_tokens") or 0
+                ct = e.get("completion_tokens") or 0
+                st["total_tokens"] += pt + ct
+        except Exception:
+            pass
+    sessions_list = sorted(sessions.values(), key=lambda s: s["created_at"], reverse=True)
     return [{
         "session_id": s["id"],
         "status": s["status"],
@@ -1231,7 +1290,9 @@ async def admin_sessions(_=Depends(_require_dashboard_session)):
         "created_at": s["created_at"],
         "last_active": s.get("last_active", 0),
         "uptime": now - s.get("last_active", s["created_at"]) if s["status"] == "ready" and s.get("worker_url") else 0,
-    } for s in sessions.values()]
+        "idle": now - s.get("last_active", s["created_at"]) if s["status"] == "ready" else 0,
+        **session_stats.get(s["id"], {"requests": 0, "cache_hits": 0, "cache_misses": 0, "total_tokens": 0}),
+    } for s in sessions_list]
 
 
 @app.get("/admin/usage")
@@ -1262,7 +1323,7 @@ async def admin_usage(_=Depends(_require_dashboard_session)):
 @app.get("/admin/live-stats")
 async def admin_live_stats(_=Depends(_require_dashboard_session)):
     if not os.path.exists(STATS_LOG):
-        return {"events": [], "summary": {}}
+        return {"events": [], "summary": {}, "activity": []}
     try:
         with open(STATS_LOG) as f:
             lines = f.readlines()
@@ -1270,7 +1331,25 @@ async def admin_live_stats(_=Depends(_require_dashboard_session)):
         requests = [e for e in events if e.get("event") == "request"]
         total = len(requests)
         hits = sum(1 for e in requests if e.get("cache_hit"))
-        recent = [e for e in requests if e.get("ts", 0) > time.time() - 300]
+        now = time.time()
+        recent = [e for e in requests if e.get("ts", 0) > now - 300]
+
+        # Bucket requests into 1-minute intervals for the last 5 minutes
+        activity: list[dict] = []
+        for i in range(4, -1, -1):
+            bucket_start = now - (i + 1) * 60
+            bucket_end = now - i * 60
+            bucket_reqs = [e for e in recent if bucket_start <= e.get("ts", 0) < bucket_end]
+            pt = sum(e.get("prompt_tokens") or 0 for e in bucket_reqs)
+            ct = sum(e.get("completion_tokens") or 0 for e in bucket_reqs)
+            activity.append({
+                "minute": int(bucket_end / 60) * 60,
+                "requests": len(bucket_reqs),
+                "cache_hits": sum(1 for e in bucket_reqs if e.get("cache_hit")),
+                "prompt_tokens": pt,
+                "completion_tokens": ct,
+            })
+
         return {
             "events": events[-100:],
             "summary": {
@@ -1283,9 +1362,10 @@ async def admin_live_stats(_=Depends(_require_dashboard_session)):
                 "pinned_now": sum(1 for s in sessions.values() if s.get("pinned_for_session")),
                 "workers_ready": sum(1 for s in sessions.values() if s["status"] == "ready"),
             },
+            "activity": activity,
         }
     except Exception:
-        return {"events": [], "summary": {}}
+        return {"events": [], "summary": {}, "activity": []}
 
 
 @app.get("/admin/users", response_class=HTMLResponse)
@@ -1307,6 +1387,7 @@ async def cancel_pending(sess=Depends(_require_dashboard_session)):
         if s["status"] == "pending" and s.get("slurm_job_id"):
             subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
             s["status"] = "cancelled"
+            s["completed_at"] = time.time()
             pool_pending.discard(sid)
             for oc_sid, w_sid in list(session_routes.items()):
                 if w_sid == sid:
@@ -1346,6 +1427,7 @@ async def create_session(body: CreateSession, _=Depends(require_auth)):
     job_id = await _submit_job(session)
     if not job_id:
         session["status"] = "failed"
+        session["completed_at"] = time.time()
         raise HTTPException(status_code=500, detail="sbatch failed")
     session["slurm_job_id"] = job_id
     _log_stats_event({
@@ -1365,6 +1447,7 @@ async def get_session(session_id: str, _=Depends(require_auth)):
         state = _check_job_state(s["slurm_job_id"])
         if state in ("FAILED", "TIMEOUT", "CANCELLED", "NODE_FAIL"):
             s["status"] = "completed"
+            s["completed_at"] = time.time()
     return {"session_id": s["id"], "status": s["status"], "mode": s.get("mode", "gpu"), "model": s["model"], "worker_url": s.get("worker_url"), "slurm_job_id": s.get("slurm_job_id"), "created_at": s["created_at"], "auto": s.get("auto", False)}
 
 
@@ -1398,6 +1481,7 @@ async def delete_session(session_id: str, _=Depends(require_auth)):
     if s.get("slurm_job_id"):
         subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
     s["status"] = "cancelled"
+    s["completed_at"] = time.time()
     pool_workers.pop(session_id, None)
     pool_pending.discard(session_id)
     for oc_sid, w_sid in list(session_routes.items()):
