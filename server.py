@@ -45,8 +45,9 @@ SLURM_QOS = os.environ.get("SLURM_QOS", "job_gpu_preemptable")
 SLURM_PARTITION = os.environ.get("SLURM_PARTITION", "gpu-invest")
 
 WORKER_PROFILES = [
-    {"qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx4090:1", "np": "2", "slots": "4"},
+    {"qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx3090:1", "np": "2", "slots": "4"},
     {"qos": "job_gratis",          "partition": "gpu",        "gpu": "rtx4090:1", "np": "2", "slots": "4"},
+    {"qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx4090:1", "np": "2", "slots": "4"},
 ]
 _next_profile = 0
 
