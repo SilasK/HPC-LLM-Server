@@ -13,20 +13,29 @@ MODEL="${LLAMA_MODEL:-/rs_scratch/users/sk25f059/models/Qwen3.6-27B-UD-Q4_K_XL.g
 LLAMA_BIN="${LLAMA_BIN:-/rs_scratch/users/sk25f059/llama.cpp/build/bin/llama-server}"
 NP="${LLAMA_NP:-2}"
 SLOTS="${LLAMA_SLOTS:-4}"
+NGPU="${LLAMA_NGPU:-all}"
 
 export LD_LIBRARY_PATH="/software.9/software/GCCcore/14.2.0/lib64:/software.9/software/CUDA/12.8.0/lib64:${LD_LIBRARY_PATH:-}"
 
 echo "Starting llama-server on 0.0.0.0:${PORT}"
 echo "Model: ${MODEL}"
-echo "Parallel decoders: ${NP}, Slots: ${SLOTS}"
+echo "Parallel decoders: ${NP}, Slots: ${SLOTS}, GPU layers: ${NGPU}"
+
+GPU_FLAGS=""
+if [ "$NGPU" = "0" ] || [ "$NGPU" = "none" ]; then
+    # CPU mode: no GPU offloading
+    GPU_FLAGS="--n-gpu-layers 0"
+    echo "Running in CPU-only mode"
+else
+    # GPU mode: offload all layers
+    GPU_FLAGS="--n-gpu-layers all --cache-type-k q4_0 --cache-type-v q4_0"
+fi
 
 ${LLAMA_BIN} \
   --model "${MODEL}" \
-  --n-gpu-layers all \
+  ${GPU_FLAGS} \
   --ctx-size 131072 \
   --flash-attn on \
-  --cache-type-k q4_0 \
-  --cache-type-v q4_0 \
   --reasoning on \
   --host 0.0.0.0 \
   --port "${PORT}" \

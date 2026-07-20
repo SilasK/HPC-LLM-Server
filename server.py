@@ -48,6 +48,7 @@ WORKER_PROFILES = [
     {"qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx3090:1", "np": "2", "slots": "4"},
     {"qos": "job_gratis",          "partition": "gpu",        "gpu": "rtx4090:1", "np": "2", "slots": "4"},
     {"qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx4090:1", "np": "2", "slots": "4"},
+    {"qos": "job_cpu_preemptable", "partition": "cpu-invest", "gpu": "none",      "np": "1", "slots": "2", "mem": "64G", "cpus": 16, "nogpu": True},
 ]
 _next_profile = 0
 
@@ -810,6 +811,8 @@ async def _submit_job(session: dict) -> str | None:
     gpu = profile.get("gpu", DEFAULT_GPU)
     np = profile.get("np", os.environ.get("LLAMA_NP", "2"))
     slots = profile.get("slots", os.environ.get("LLAMA_SLOTS", "4"))
+    nogpu = profile.get("nogpu", False)
+    mem = session.get("memory", profile.get("mem", DEFAULT_MEM))
     env = {
         "SESSION_ID": session["id"],
         "SERVER_URL": SERVER_URL,
@@ -819,6 +822,7 @@ async def _submit_job(session: dict) -> str | None:
         "GPU_TYPE": session.get("gpu_type", gpu),
         "LLAMA_NP": np,
         "LLAMA_SLOTS": slots,
+        "LLAMA_NGPU": "0" if nogpu else "all",
     }
     export_str = ",".join(f"{k}={v}" for k, v in env.items())
     log_dir = os.path.join(os.path.dirname(__file__), "logs")
@@ -835,9 +839,14 @@ async def _submit_job(session: dict) -> str | None:
     cmd += [
         f"--qos={qos}", f"--partition={partition}",
         "--nodes=1",
-        f"--gres=gpu:{session.get('gpu_type', gpu)}",
+    ]
+    if nogpu:
+        cmd += ["--cpus-per-task=16"]
+    else:
+        cmd += [f"--gres=gpu:{session.get('gpu_type', gpu)}"]
+    cmd += [
         f"--time={session.get('walltime', DEFAULT_TIME)}",
-        f"--mem={session.get('memory', DEFAULT_MEM)}",
+        f"--mem={mem}",
     ]
     cmd.append(SLURM_SCRIPT)
     try:
@@ -901,7 +910,7 @@ async def _pool_create_worker() -> str | None:
         "slurm_job_id": None, "worker_url": None,
         "created_at": time.time(), "last_active": time.time(),
         "gpu_type": profile["gpu"], "walltime": DEFAULT_TIME,
-        "memory": DEFAULT_MEM, "mode": "gpu", "restart_count": 0,
+        "memory": profile.get("mem", DEFAULT_MEM), "mode": "gpu", "restart_count": 0,
         "auto": True, "pool": True, "profile": profile,
     }
     sessions[session_id] = session

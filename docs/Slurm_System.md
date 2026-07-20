@@ -95,13 +95,14 @@ Each GPU can run one `llama-server` instance. With `-np N` and `--slots M`, mult
 
 ### Worker Profiles
 
-The pool cycles through three worker profiles to maximize GPU availability:
+The pool cycles through four worker profiles to maximize GPU availability:
 
-| Profile | QoS | Partition | GPU | -np | Slots | Quota |
-|---------|-----|-----------|-----|-----|-------|-------|
-| 0 (3090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX3090 | 2 | 4 | ~4 GPUs/user |
-| 1 (gratis) | `job_gratis` | `gpu` | 1× RTX4090 | 2 | 4 | 16 GPUs (account) |
-| 2 (4090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX4090 | 2 | 4 | ~4 GPUs/user |
+| Profile | QoS | Partition | GPU | -np | Slots | Memory | Quota |
+|---------|-----|-----------|-----|-----|-------|--------|-------|
+| 0 (3090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX3090 | 2 | 4 | 16G | ~4 GPUs/user |
+| 1 (gratis) | `job_gratis` | `gpu` | 1× RTX4090 | 2 | 4 | 16G | 16 GPUs (account) |
+| 2 (4090) | `job_gpu_preemptable` | `gpu-invest` | 1× RTX4090 | 2 | 4 | 16G | ~4 GPUs/user |
+| 3 (CPU) | `job_cpu_preemptable` | `cpu-invest` | none | 1 | 2 | 64G | 82 nodes × 128 CPUs |
 
 ### Manual Override
 
