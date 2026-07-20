@@ -56646,3 +56646,6 @@
 {"event": "pool_status", "ts": 1784549295.3119712, "active_workers": 0, "pinned_workers": 0, "pending": 3, "total_sessions": 8, "pool_capacity": 0, "pool_load": 0}
 {"event": "worker_created", "ts": 1784549295.3732493, "worker_session": "e4732b16-0d81-436e-8844-ca043338d523", "slurm_job_id": "9580964", "source": "pool", "model": "Qwen3.6-27B-MTP", "qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx4090:1", "np": 2, "slots": 4}
 {"event": "pool_status", "ts": 1784549325.3544078, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 9, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784549371.3830574, "worker_session": "e8661e71-999f-4f09-8878-175393484e7d", "slurm_job_id": "9581073", "source": "pool", "model": "Qwen3.6-27B-MTP", "qos": "job_gpu_preemptable", "partition": "gpu-invest", "gpu": "rtx3090:1", "np": 2, "slots": 4}
+{"event": "pool_status", "ts": 1784549390.312632, "active_workers": 0, "pinned_workers": 0, "pending": 1, "total_sessions": 1, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784549390.3441782, "worker_session": "19a41f23-a84b-4581-9381-c6590cd54b83", "slurm_job_id": "9581101", "source": "pool", "model": "Qwen3.6-27B-MTP", "qos": "job_gratis", "partition": "gpu", "gpu": "rtx4090:1", "np": 2, "slots": 4}

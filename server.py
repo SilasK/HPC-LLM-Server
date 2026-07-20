@@ -899,8 +899,23 @@ async def _pool_get_worker() -> dict | str | None:
 
 async def _pool_create_worker() -> str | None:
     global _next_profile
+    # If pending queue is full, cancel the oldest stale pending worker to make room
     if len(pool_pending) >= POOL_MAX_PENDING:
-        return None
+        now = time.time()
+        stale = [(sid, s) for sid, s in sessions.items()
+                 if sid in pool_pending and s.get("status") == "pending"
+                 and now - s.get("created_at", 0) > 120]
+        if stale:
+            stale.sort(key=lambda x: x[1]["created_at"])
+            sid, s = stale[0]
+            pool_pending.discard(sid)
+            if s.get("slurm_job_id"):
+                subprocess.run(["scancel", s["slurm_job_id"]], capture_output=True, timeout=10)
+            s["status"] = "cancelled"
+            s["completed_at"] = now
+            logger.info(f"Cancelled stale pending worker {sid[:8]} to try next profile")
+        else:
+            return None
     session_id = str(uuid.uuid4())
     profile = WORKER_PROFILES[_next_profile % len(WORKER_PROFILES)]
     _next_profile += 1
@@ -960,6 +975,25 @@ async def _pool_maintenance():
                 if not s or s["status"] != "pending":
                     pool_pending.discard(sid)
                     continue
+                # Cancel pending jobs stuck >5 min in queue
+                if now - s.get("created_at", 0) > 300:
+                    job_id = s.get("slurm_job_id")
+                    if job_id:
+                        state = _check_job_state(job_id)
+                        if state in ("PENDING", ""):
+                            subprocess.run(["scancel", job_id], capture_output=True, timeout=10)
+                            logger.info(f"Cancelled stuck pending {sid[:8]} job {job_id} (stuck {now - s['created_at']:.0f}s)")
+                            _log_stats_event({
+                                "event": "worker_removed", "ts": time.time(),
+                                "worker_session": sid, "reason": "stuck_in_queue",
+                            })
+                            pool_pending.discard(sid)
+                            s["status"] = "completed"
+                            s["completed_at"] = time.time()
+                            continue
+                    else:
+                        pool_pending.discard(sid)
+                        continue
                 job_id = s.get("slurm_job_id")
                 if job_id:
                     state = _check_job_state(job_id)
