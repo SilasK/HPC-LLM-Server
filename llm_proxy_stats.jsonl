@@ -56503,3 +56503,6 @@
 {"event": "pool_status", "ts": 1784546871.3036578, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
 {"event": "pool_status", "ts": 1784546901.3512566, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
 {"event": "pool_status", "ts": 1784546931.3972855, "active_workers": 0, "pinned_workers": 0, "pending": 4, "total_sessions": 4, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784546981.102783, "worker_session": "c3cc3e8d-4613-4cd9-9588-58fc59bb088f", "slurm_job_id": "9577955", "source": "pool", "model": "Qwen3.6-27B-MTP"}
+{"event": "pool_status", "ts": 1784546989.775342, "active_workers": 0, "pinned_workers": 0, "pending": 1, "total_sessions": 1, "pool_capacity": 0, "pool_load": 0}
+{"event": "worker_created", "ts": 1784546989.8075063, "worker_session": "d4ff9f4e-73d2-4578-8609-43d38be928e2", "slurm_job_id": "9577959", "source": "pool", "model": "Qwen3.6-27B-MTP"}

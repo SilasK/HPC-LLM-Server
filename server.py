@@ -41,6 +41,8 @@ SLURM_SCRIPT = os.environ.get("SLURM_SCRIPT", os.path.join(os.path.dirname(__fil
 DEFAULT_GPU = os.environ.get("DEFAULT_GPU", "rtx4090:1")
 DEFAULT_TIME = os.environ.get("DEFAULT_TIME", "00:20:00")
 DEFAULT_MEM = os.environ.get("DEFAULT_MEM", "16G")
+SLURM_QOS = os.environ.get("SLURM_QOS", "job_gpu_preemptable")
+SLURM_PARTITION = os.environ.get("SLURM_PARTITION", "gpu-invest")
 
 sessions: dict[str, dict] = {}
 
@@ -818,7 +820,7 @@ async def _submit_job(session: dict) -> str | None:
         "--parsable",
     ]
     cmd += [
-        "--qos=job_gpu_preemptable", "--partition=gpu-invest",
+        f"--qos={SLURM_QOS}", f"--partition={SLURM_PARTITION}",
         "--nodes=1",
         f"--gres=gpu:{session.get('gpu_type', DEFAULT_GPU)}",
         f"--time={session.get('walltime', DEFAULT_TIME)}",
